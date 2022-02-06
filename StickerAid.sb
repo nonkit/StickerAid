@@ -1,15 +1,23 @@
 ' StickerAid
-version = "0.0.1b"
+version = "0.0.2b"
 ' Copyright © 2022 Facilitation LINE Sticker Team.  The MIT License.
 ' Using LitDev Extension
 '
+Not = "False=True;True=False;"
 gw = 600
 gh = 600
 GraphicsWindow.Width = gw
 GraphicsWindow.Height = gh
 GraphicsWindow.BackgroundColor = "LightGray"
 GraphicsWindow.Title = "StickerAid v" + version
-'
+sw = 370      ' sticker
+sh = 320
+_sw = sw / 5  ' thumbnail
+_sh = sh / 5
+ms = 240      ' main
+gap = 4
+
+' menu
 mh = 20
 menuList["File"] = "Main"
 menuList["Open"] = "File"
@@ -22,70 +30,102 @@ GraphicsWindow.BrushColor = "Black"
 GraphicsWindow.FontBold = "False"
 GraphicsWindow.FontSize = mh * 0.7
 LDControls.AddMenu(gw, mh, menuList, "", "")
-'
-path = "C:\Users\Nonki\OneDrive\Documents\SmallBasic\Sticker"
-directory = path + "\LINEStampHokkaido"
-zipFile = path + "\LINEStampHokkaido.zip"
-LDZip.UnZip(zipFile, directory)
-'
-sw = 370      ' sticker
-sh = 320
-_sw = sw / 5  ' thumbnail
-_sh = sh / 5
-ms = 240      ' main
-tw = 96       ' tab
-th = 74
-gap = 4
-'
-GraphicsWindow.BrushColor = "White"
-GraphicsWindow.FillRectangle(gap, mh + gap, ms, ms)
-GraphicsWindow.PenWidth = 1
-GraphicsWindow.PenColor = "DimGray"
-GraphicsWindow.BrushColor = "Transparent"
-mf = Shapes.AddRectangle(ms, ms)
-Shapes.Move(mf, gap, mh + gap)
-qw = ms / 2
-qh = Math.Round(qw * 320 / 370)
-dy = (qw - qh) / 2
-q = "1=25;2=31;3=18;4=24;"
-For i = 1 To 4
-  x = gap + Math.Remainder(i - 1, 2) * qw
-  y = mh + gap + dy + Math.Floor((i - 1) / 2) * qw
-  If 9 < q[i] Then
-    name = q[i] + ".png"
-  Else
-    name = Text.Append(0, q[i] + ".png")
+path = Program.Directory
+LDControls.MenuClicked = OnMenuClicked
+
+Sub CheckFiles
+  files = File.GetFiles(directory)
+  n = 0
+  For i = 1 To Array.GetItemCount(files)
+    If Not[Text.EndsWith(files[i], "main.png")] And Not[Text.EndsWith(files[i], "tab.png")] Then 
+      n = n + 1
+    EndIf
+  EndFor
+EndSub
+
+Sub OnMenuClicked
+  If LDControls.LastMenuItem = "Open" Then
+    zipFile = LDDialogs.OpenFile("zip", path)
+    ext = LDFile.GetExtension(zipFile)
+    directory = LDText.Replace(zipFile, "." + ext, "")
+    LDZip.UnZip(zipFile, directory)
+    CheckFiles()
+    Redraw()
+  ElseIf LDControls.LastMenuItem = "Save" Then
+    Shapes.HideShape(mf)
+    Shapes.HideShape(tf)
+    imgM = LDGraphicsWindow.Capture("", "False")
+    LDImage.Crop(imgM, gap, mh + gap, ms, ms)
+    imgT = LDGraphicsWindow.Capture("", "False")
+    LDImage.Crop(imgT, gap * 2 + ms, mh + gap, tw, th)
+    Shapes.ShowShape(mf)
+    Shapes.ShowShape(tf)
+    LDImage.SaveAs(imgM, directory + "\main.png")
+    LDImage.SaveAs(imgT, directory + "\tab.png")
+  ElseIf LDControls.LastMenuItem = "Exit" Then
+    Program.End()
   EndIf
-  GraphicsWindow.DrawResizedImage(directory + "\" + name, x, y, qw, qh)
-EndFor
-'
-GraphicsWindow.BrushColor = "White"
-GraphicsWindow.FillRectangle(gap * 2 + ms, mh + gap, tw, th)
-GraphicsWindow.PenWidth = 1
-GraphicsWindow.PenColor = "DimGray"
-GraphicsWindow.BrushColor = "Transparent"
-tf = Shapes.AddRectangle(tw, th)
-Shapes.Move(tf, gap * 2 + ms, mh + gap)
-i = 25
-x = gap * 2 + ms
-y = mh + gap
-_tw = Math.Round(th / sh * sw)
-dx = (tw - _tw) / 2
-If 9 < i Then
-  name = i + ".png"
-Else
-  name = Text.Append(0, i + ".png")
-EndIf
-GraphicsWindow.DrawResizedImage(directory + "\" + name, x + dx, y, _tw, th)
-'
-For i = 1 To 40
-  x = gap + Math.Remainder(i - 1, 8) * _sw
-  y = mh + ms + gap * 2 + Math.Floor((i - 1) / 8) * _sh
+EndSub
+
+Sub Redraw
+  ' main image: ms x ms [px]
+  GraphicsWindow.BrushColor = "White"
+  GraphicsWindow.FillRectangle(gap, mh + gap, ms, ms)
+  GraphicsWindow.PenWidth = 1
+  GraphicsWindow.PenColor = "DimGray"
+  GraphicsWindow.BrushColor = "Transparent"
+  mf = Shapes.AddRectangle(ms, ms)
+  Shapes.Move(mf, gap, mh + gap)
+  qw = ms / 2
+  qh = Math.Round(qw * 320 / 370)
+  dy = qw - qh
+  q = "1=15;2=21;3=6;4=14;"
+  For i = 1 To 4
+    x = gap + Math.Remainder(i - 1, 2) * qw
+    y = mh + gap + dy + Math.Floor((i - 1) / 2) * qh
+    If 9 < q[i] Then
+      name = q[i] + ".png"
+    Else
+      name = Text.Append(0, q[i] + ".png")
+    EndIf
+    GraphicsWindow.DrawResizedImage(directory + "\" + name, x, y, qw, qh)
+  EndFor
+  ' tab image: tw x th [px]
+  tw = 96       ' tab
+  th = 74
+  GraphicsWindow.BrushColor = "White"
+  GraphicsWindow.FillRectangle(gap * 2 + ms, mh + gap, tw, th)
+  GraphicsWindow.PenWidth = 1
+  GraphicsWindow.PenColor = "DimGray"
+  GraphicsWindow.BrushColor = "Transparent"
+  tf = Shapes.AddRectangle(tw, th)
+  Shapes.Move(tf, gap * 2 + ms, mh + gap)
+  i = 15
+  x = gap * 2 + ms
+  y = mh + gap
+  _tw = Math.Round(th / sh * sw)
+  dx = (tw - _tw) / 2
   If 9 < i Then
     name = i + ".png"
   Else
     name = Text.Append(0, i + ".png")
   EndIf
-  GraphicsWindow.DrawRectangle(x, y, _sw, _sh)
-  GraphicsWindow.DrawResizedImage(directory + "\" + name, x, y, _sw, _sh)
-EndFor
+  GraphicsWindow.DrawResizedImage(directory + "\" + name, x + dx, y, _tw, th)
+  ' sticker image: sw x sh --> (resized) _sw x _sh [px]
+  GraphicsWindow.BrushColor = "LightGray"
+  GraphicsWindow.FillRectangle(gap, mh + ms + gap * 2, _sw * 8, _sh * 5)
+  For i = 1 To 40
+    x = gap + Math.Remainder(i - 1, 8) * _sw
+    y = mh + ms + gap * 2 + Math.Floor((i - 1) / 8) * _sh
+    GraphicsWindow.DrawRectangle(x, y, _sw, _sh)
+    If i <= n Then
+      If 9 < i Then
+        name = i + ".png"
+      Else
+        name = Text.Append(0, i + ".png")
+      EndIf
+      GraphicsWindow.DrawResizedImage(directory + "\" + name, x, y, _sw, _sh)
+    EndIf  
+  EndFor
+EndSub
+      
