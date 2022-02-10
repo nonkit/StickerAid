@@ -1,15 +1,21 @@
 ' StickerAid
-version = "0.0.2b"
+version = "0.0.3b"
 ' Copyright © 2022 Facilitation LINE Sticker Team.  The MIT License.
 ' Using LitDev Extension
-'
+
 Not = "False=True;True=False;"
+LF = Text.GetCharacter(10)
 gw = 600
 gh = 600
 GraphicsWindow.Width = gw
 GraphicsWindow.Height = gh
 GraphicsWindow.BackgroundColor = "LightGray"
-GraphicsWindow.Title = "StickerAid v" + version
+title = "StickerAid v" + version
+about = title + LF + LF
+about = about + "Copyright © 2022" + LF
+about = about + "Facilitation LINE Sticker Team." + LF
+about = about + "The MIT License."
+GraphicsWindow.Title = title
 sw = 370      ' sticker
 sh = 320
 _sw = sw / 5  ' thumbnail
@@ -31,40 +37,104 @@ GraphicsWindow.FontBold = "False"
 GraphicsWindow.FontSize = mh * 0.7
 LDControls.AddMenu(gw, mh, menuList, "", "")
 path = Program.Directory
+directory = LDFile.TempFolder + "\StickerAid"
 LDControls.MenuClicked = OnMenuClicked
+While "True"
+  If menuClicked Then
+    If LDControls.LastMenuItem = "Open" Then
+      zipFile = LDDialogs.OpenFile("zip", path)
+      If zipFile <> "" Then
+        temp = LDFile.TempFolder + "\StickerAid"
+        If LDFile.Exists(temp) Then
+          dirs = File.GetDirectories(temp)
+          nDirs = Array.GetItemCount(dirs)
+          If 0 < nDirs Then
+            For i = 1 To nDirs
+              File.DeleteDirectory(dirs[i])
+            EndFor
+          EndIf
+        Else
+          File.CreateDirectory(temp)
+        EndIf
+        time = LDText.Replace(Clock.Date, "/", "") + "-" + LDText.Replace(Clock.Time, ":", "")
+        directory = temp + "\" + time
+        LDZip.UnZip(zipFile, directory)
+      EndIf
+      CheckFiles()
+      Redraw()
+    ElseIf LDControls.LastMenuItem = "Save" Then
+      exMain = LDFile.Exists(directory + "\main.png")
+      exTab = LDFile.Exists(directory + "\tab.png")
+      If exMain Then
+        If exTab Then
+          targets = "main.png and tab.png"
+        Else
+          targets = "main.png"
+        EndIf
+      Else
+        If exTab Then
+          targets = "tab.png"
+        Else
+          targets = ""
+        EndIf
+      EndIf
+      If exMain Or exTab Then
+        confirm = "Are you sure to rewrite" + LF
+        confirm = confirm + targets + "?"
+        save = LDDialogs.Confirm(confirm, "Save")
+      Else
+        save = "Yes"
+      EndIf
+      If save = "Yes" Then
+        Shapes.HideShape(mf)
+        Shapes.HideShape(tf)
+        imgM = LDGraphicsWindow.Capture("", "False")
+        LDImage.Crop(imgM, gap, mh + gap, ms, ms)
+        imgT = LDGraphicsWindow.Capture("", "False")
+        LDImage.Crop(imgT, gap * 2 + ms, mh + gap, tw, th)
+        Shapes.ShowShape(mf)
+        Shapes.ShowShape(tf)
+        LDImage.SaveAs(imgM, directory + "\main.png")
+        LDImage.SaveAs(imgT, directory + "\tab.png")
+        files = File.GetFiles(directory)
+        LDZip.Zip(zipFile, files)
+      EndIf
+    ElseIf LDControls.LastMenuItem = "Exit" Then
+      If directory <> "" Then
+        File.DeleteDirectory(directory)
+      EndIf
+      Program.End()
+    ElseIf LDControls.LastMenuItem = "About" Then
+      GraphicsWindow.ShowMessage(about, "About")
+    EndIf
+    menuClicked = "False"
+  Else
+    Program.Delay(200)
+  EndIf
+EndWhile
 
 Sub CheckFiles
   files = File.GetFiles(directory)
+  img = ""
   n = 0
   For i = 1 To Array.GetItemCount(files)
-    If Not[Text.EndsWith(files[i], "main.png")] And Not[Text.EndsWith(files[i], "tab.png")] Then 
+    If Text.EndsWith(files[i], "main.png") Then
+      img["main"] = ImageList.LoadImage(files[i])
+    ElseIf Text.EndsWith(files[i], "tab.png") Then
+      img["tab"] = ImageList.LoadImage(files[i])
+    Else
       n = n + 1
+      img[n] = ImageList.LoadImage(files[i])
     EndIf
   EndFor
 EndSub
 
+Sub OnCallComplete
+  callComplete = "True"
+EndSub
+
 Sub OnMenuClicked
-  If LDControls.LastMenuItem = "Open" Then
-    zipFile = LDDialogs.OpenFile("zip", path)
-    ext = LDFile.GetExtension(zipFile)
-    directory = LDText.Replace(zipFile, "." + ext, "")
-    LDZip.UnZip(zipFile, directory)
-    CheckFiles()
-    Redraw()
-  ElseIf LDControls.LastMenuItem = "Save" Then
-    Shapes.HideShape(mf)
-    Shapes.HideShape(tf)
-    imgM = LDGraphicsWindow.Capture("", "False")
-    LDImage.Crop(imgM, gap, mh + gap, ms, ms)
-    imgT = LDGraphicsWindow.Capture("", "False")
-    LDImage.Crop(imgT, gap * 2 + ms, mh + gap, tw, th)
-    Shapes.ShowShape(mf)
-    Shapes.ShowShape(tf)
-    LDImage.SaveAs(imgM, directory + "\main.png")
-    LDImage.SaveAs(imgT, directory + "\tab.png")
-  ElseIf LDControls.LastMenuItem = "Exit" Then
-    Program.End()
-  EndIf
+  menuClicked = "True"
 EndSub
 
 Sub Redraw
@@ -79,17 +149,11 @@ Sub Redraw
   qw = ms / 2
   qh = Math.Round(qw * 320 / 370)
   dy = qw - qh
-  q = "1=15;2=21;3=6;4=14;"
-  For i = 1 To 4
-    x = gap + Math.Remainder(i - 1, 2) * qw
-    y = mh + gap + dy + Math.Floor((i - 1) / 2) * qh
-    If 9 < q[i] Then
-      name = q[i] + ".png"
-    Else
-      name = Text.Append(0, q[i] + ".png")
-    EndIf
-    GraphicsWindow.DrawResizedImage(directory + "\" + name, x, y, qw, qh)
-  EndFor
+  If img["main"] <> "" Then
+    x = gap 
+    y = mh + gap
+    GraphicsWindow.DrawResizedImage(img["main"], x, y, ms, ms)
+  EndIf
   ' tab image: tw x th [px]
   tw = 96       ' tab
   th = 74
@@ -100,17 +164,13 @@ Sub Redraw
   GraphicsWindow.BrushColor = "Transparent"
   tf = Shapes.AddRectangle(tw, th)
   Shapes.Move(tf, gap * 2 + ms, mh + gap)
-  i = 15
-  x = gap * 2 + ms
-  y = mh + gap
-  _tw = Math.Round(th / sh * sw)
-  dx = (tw - _tw) / 2
-  If 9 < i Then
-    name = i + ".png"
-  Else
-    name = Text.Append(0, i + ".png")
+  If img["tab"] <> "" Then
+    x = gap * 2 + ms
+    y = mh + gap
+    _tw = Math.Round(th / sh * sw)
+    dx = (tw - _tw) / 2
+    GraphicsWindow.DrawResizedImage(img["tab"], x, y, tw, th)
   EndIf
-  GraphicsWindow.DrawResizedImage(directory + "\" + name, x + dx, y, _tw, th)
   ' sticker image: sw x sh --> (resized) _sw x _sh [px]
   GraphicsWindow.BrushColor = "LightGray"
   GraphicsWindow.FillRectangle(gap, mh + ms + gap * 2, _sw * 8, _sh * 5)
@@ -128,4 +188,3 @@ Sub Redraw
     EndIf  
   EndFor
 EndSub
-      
