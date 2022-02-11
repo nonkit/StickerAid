@@ -1,111 +1,26 @@
 ' StickerAid
-version = "0.0.3b"
+version = "0.0.4b"
 ' Copyright © 2022 Facilitation LINE Sticker Team.  The MIT License.
 ' Using LitDev Extension
 
-Not = "False=True;True=False;"
-LF = Text.GetCharacter(10)
-gw = 600
-gh = 600
-GraphicsWindow.Width = gw
-GraphicsWindow.Height = gh
-GraphicsWindow.BackgroundColor = "LightGray"
-title = "StickerAid v" + version
-about = title + LF + LF
-about = about + "Copyright © 2022" + LF
-about = about + "Facilitation LINE Sticker Team." + LF
-about = about + "The MIT License."
-GraphicsWindow.Title = title
-sw = 370      ' sticker
-sh = 320
-_sw = sw / 5  ' thumbnail
-_sh = sh / 5
-ms = 240      ' main
-gap = 4
+Init()
+lang = "ja"
+InitLang()
+InitMenu()
 
-' menu
-mh = 20
-menuList["File"] = "Main"
-menuList["Open"] = "File"
-menuList["Save"] = "File"
-menuList["-"] = "File"
-menuList["Exit"] = "File"
-menuList["Help"] = "Main"
-menuList["About"] = "Help"
-GraphicsWindow.BrushColor = "Black"
-GraphicsWindow.FontBold = "False"
-GraphicsWindow.FontSize = mh * 0.7
-LDControls.AddMenu(gw, mh, menuList, "", "")
-path = Program.Directory
-directory = LDFile.TempFolder + "\StickerAid"
-LDControls.MenuClicked = OnMenuClicked
 While "True"
   If menuClicked Then
-    If LDControls.LastMenuItem = "Open" Then
-      zipFile = LDDialogs.OpenFile("zip", path)
-      If zipFile <> "" Then
-        temp = LDFile.TempFolder + "\StickerAid"
-        If LDFile.Exists(temp) Then
-          dirs = File.GetDirectories(temp)
-          nDirs = Array.GetItemCount(dirs)
-          If 0 < nDirs Then
-            For i = 1 To nDirs
-              File.DeleteDirectory(dirs[i])
-            EndFor
-          EndIf
-        Else
-          File.CreateDirectory(temp)
-        EndIf
-        time = LDText.Replace(Clock.Date, "/", "") + "-" + LDText.Replace(Clock.Time, ":", "")
-        directory = temp + "\" + time
-        LDZip.UnZip(zipFile, directory)
-      EndIf
-      CheckFiles()
-      Redraw()
-    ElseIf LDControls.LastMenuItem = "Save" Then
-      exMain = LDFile.Exists(directory + "\main.png")
-      exTab = LDFile.Exists(directory + "\tab.png")
-      If exMain Then
-        If exTab Then
-          targets = "main.png and tab.png"
-        Else
-          targets = "main.png"
-        EndIf
-      Else
-        If exTab Then
-          targets = "tab.png"
-        Else
-          targets = ""
-        EndIf
-      EndIf
-      If exMain Or exTab Then
-        confirm = "Are you sure to rewrite" + LF
-        confirm = confirm + targets + "?"
-        save = LDDialogs.Confirm(confirm, "Save")
-      Else
-        save = "Yes"
-      EndIf
-      If save = "Yes" Then
-        Shapes.HideShape(mf)
-        Shapes.HideShape(tf)
-        imgM = LDGraphicsWindow.Capture("", "False")
-        LDImage.Crop(imgM, gap, mh + gap, ms, ms)
-        imgT = LDGraphicsWindow.Capture("", "False")
-        LDImage.Crop(imgT, gap * 2 + ms, mh + gap, tw, th)
-        Shapes.ShowShape(mf)
-        Shapes.ShowShape(tf)
-        LDImage.SaveAs(imgM, directory + "\main.png")
-        LDImage.SaveAs(imgT, directory + "\tab.png")
-        files = File.GetFiles(directory)
-        LDZip.Zip(zipFile, files)
-      EndIf
-    ElseIf LDControls.LastMenuItem = "Exit" Then
-      If directory <> "" Then
-        File.DeleteDirectory(directory)
-      EndIf
+    If LDControls.LastMenuItem = txt["Open"] Then
+      OpenZip()
+      GetImages()
+      DrawImages()
+    ElseIf LDControls.LastMenuItem = txt["Save"] Then
+      SaveZip()
+    ElseIf LDControls.LastMenuItem = txt["Exit"] Then
+      InitTemp()
       Program.End()
-    ElseIf LDControls.LastMenuItem = "About" Then
-      GraphicsWindow.ShowMessage(about, "About")
+    ElseIf LDControls.LastMenuItem = txt["About"] Then
+      GraphicsWindow.ShowMessage(about, txt["About"])
     EndIf
     menuClicked = "False"
   Else
@@ -113,31 +28,7 @@ While "True"
   EndIf
 EndWhile
 
-Sub CheckFiles
-  files = File.GetFiles(directory)
-  img = ""
-  n = 0
-  For i = 1 To Array.GetItemCount(files)
-    If Text.EndsWith(files[i], "main.png") Then
-      img["main"] = ImageList.LoadImage(files[i])
-    ElseIf Text.EndsWith(files[i], "tab.png") Then
-      img["tab"] = ImageList.LoadImage(files[i])
-    Else
-      n = n + 1
-      img[n] = ImageList.LoadImage(files[i])
-    EndIf
-  EndFor
-EndSub
-
-Sub OnCallComplete
-  callComplete = "True"
-EndSub
-
-Sub OnMenuClicked
-  menuClicked = "True"
-EndSub
-
-Sub Redraw
+Sub DrawImages
   ' main image: ms x ms [px]
   GraphicsWindow.BrushColor = "White"
   GraphicsWindow.FillRectangle(gap, mh + gap, ms, ms)
@@ -187,4 +78,156 @@ Sub Redraw
       GraphicsWindow.DrawResizedImage(directory + "\" + name, x, y, _sw, _sh)
     EndIf  
   EndFor
+EndSub
+
+Sub GetImages
+  files = File.GetFiles(directory)
+  img = ""
+  n = 0
+  For i = 1 To Array.GetItemCount(files)
+    If Text.EndsWith(files[i], "main.png") Then
+      img["main"] = ImageList.LoadImage(files[i])
+    ElseIf Text.EndsWith(files[i], "tab.png") Then
+      img["tab"] = ImageList.LoadImage(files[i])
+    Else
+      n = n + 1
+      img[n] = ImageList.LoadImage(files[i])
+    EndIf
+  EndFor
+EndSub
+
+Sub Init
+  Not = "False=True;True=False;"
+  LF = Text.GetCharacter(10)
+  gw = 600
+  gh = 600
+  GraphicsWindow.Width = gw
+  GraphicsWindow.Height = gh
+  GraphicsWindow.BackgroundColor = "LightGray"
+  title = "StickerAid v" + version
+  GraphicsWindow.Title = title
+  sw = 370      ' sticker
+  sh = 320
+  _sw = sw / 5  ' thumbnail
+  _sh = sh / 5
+  ms = 240      ' main
+  gap = 4
+  path = Program.Directory
+  directory = LDFile.TempFolder + "\StickerAid"
+EndSub
+
+Sub InitLang
+  If lang = "ja" Then
+    txt["team"] = "ファシリテーションLINEスタンプ部"
+    txt["and"] = "と"
+    txt["confirm"] = "%1 を" + LF + "上書き保存しますか？"
+    txt["File"] = "ファイル"
+    txt["Open"] = "開く"
+    txt["Save"] = "保存"
+    txt["Exit"] = "終了"
+    txt["Help"] = "ヘルプ"
+    txt["About"] = "バージョン情報"
+  Else
+    txt["team"] = "Facilitation LINE Sticker Team"
+    txt["and"] = "and"
+    txt["confirm"] = "Are you sure to rewrite" + LF + "%1?"
+    txt["File"] = "File"
+    txt["Open"] = "Open"
+    txt["Save"] = "Save"
+    txt["Exit"] = "Exit"
+    txt["Help"] = "Help"
+    txt["About"] = "About"
+  EndIf
+  about = title + LF + LF
+  about = about + "Copyright © 2022" + LF
+  about = about + txt["team"] + "." + LF
+  about = about + "The MIT License."
+EndSub
+
+Sub InitMenu
+  ' menu
+  mh = 20
+  menuList[txt["File"]] = "Main"
+  menuList[txt["Open"]] = txt["File"]
+  menuList[txt["Save"]] = txt["File"]
+  menuList["-"] = txt["File"]
+  menuList[txt["Exit"]] = txt["File"]
+  menuList[txt["Help"]] = "Main"
+  menuList[txt["About"]] = txt["Help"]
+  GraphicsWindow.BrushColor = "Black"
+  GraphicsWindow.FontBold = "False"
+  GraphicsWindow.FontSize = mh * 0.7
+  LDControls.AddMenu(gw, mh, menuList, "", "")
+  LDControls.MenuClicked = OnMenuClicked
+EndSub
+
+Sub InitTemp
+  temp = LDFile.TempFolder + "\StickerAid"
+  If LDFile.Exists(temp) Then
+    dirs = File.GetDirectories(temp)
+    nDirs = Array.GetItemCount(dirs)
+    If 0 < nDirs Then
+      For i = 1 To nDirs
+        File.DeleteDirectory(dirs[i])
+      EndFor
+    EndIf
+  Else
+    File.CreateDirectory(temp)
+  EndIf
+EndSub
+
+Sub OnMenuClicked
+  menuClicked = "True"
+EndSub
+
+Sub OpenZip
+  zipFile = LDDialogs.OpenFile("zip", path)
+  If zipFile <> "" Then
+    InitTemp()
+    time = LDText.Replace(Clock.Time, ":", "")
+    If Text.GetLength(time) < 6 Then
+      time = Text.Append(0, time)
+    EndIf
+    timestamp = LDText.Replace(Clock.Date, "/", "") + "-" + time
+    directory = temp + "\" + timestamp
+    LDZip.UnZip(zipFile, directory)
+  EndIf
+EndSub
+
+Sub SaveZip
+  exMain = LDFile.Exists(directory + "\main.png")
+  exTab = LDFile.Exists(directory + "\tab.png")
+  If exMain Then
+    If exTab Then
+      targets = "main.png " + txt["and"] + " tab.png"
+    Else
+      targets = "main.png"
+    EndIf
+  Else
+    If exTab Then
+      targets = "tab.png"
+    Else
+      targets = ""
+    EndIf
+  EndIf
+  If exMain Or exTab Then
+    confirm = LDText.Replace(txt["confirm"], "%1", targets)
+    save = LDDialogs.Confirm(confirm, txt["Save"])
+  Else
+    save = "Yes"
+  EndIf
+  If save = "Yes" Then
+    Shapes.HideShape(mf)
+    Shapes.HideShape(tf)
+    imgM = LDGraphicsWindow.Capture("", "False")
+    LDImage.Crop(imgM, gap, mh + gap, ms, ms)
+    imgT = LDGraphicsWindow.Capture("", "False")
+    LDImage.Crop(imgT, gap * 2 + ms, mh + gap, tw, th)
+    Shapes.ShowShape(mf)
+    Shapes.ShowShape(tf)
+    LDImage.SaveAs(imgM, directory + "\main.png")
+    LDImage.SaveAs(imgT, directory + "\tab.png")
+    files = File.GetFiles(directory)
+    LDZip.Zip(zipFile, files)
+  EndIf
 EndSub
