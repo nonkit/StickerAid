@@ -4,4 +4,4 @@
 LINEStamp*.zip
 *.exe
 *.pdb
-*.png
+LINEStamp*/*.png
