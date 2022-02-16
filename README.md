@@ -3,6 +3,7 @@
 This tool is to create main.png and tab.png for LINE stickers and programmed with Microsoft Small Basic programming language.
 
 ## Release
+[StickerAid Releases](https://github.com/nonkit/StickerAid/releases)
 
 ## Required Environment
 - Windows Vista, 7, 8, 10, 11
