@@ -1,5 +1,5 @@
 ' StickerAid
-version = "0.0.4b"
+version = "0.0.9b"
 ' Copyright © 2022 Facilitation LINE Sticker Team.  The MIT License.
 ' Using LitDev Extension
 
@@ -7,6 +7,8 @@ Init()
 lang = "ja"
 InitLang()
 InitMenu()
+DrawImages()
+InitMouse()
 
 While "True"
   If menuClicked Then
@@ -17,83 +19,160 @@ While "True"
     ElseIf LDControls.LastMenuItem = txt["Save"] Then
       SaveZip()
     ElseIf LDControls.LastMenuItem = txt["Exit"] Then
-      InitTemp()
-      Program.End()
+      closing = "True"
     ElseIf LDControls.LastMenuItem = txt["About"] Then
       GraphicsWindow.ShowMessage(about, txt["About"])
     EndIf
     menuClicked = "False"
+  ElseIf mouseDown Then
+    DragAndDrop()
+    mouseDown = "False
+  ElseIf closing Then
+    InitTemp()
+    Program.End()
   Else
     Program.Delay(200)
   EndIf
 EndWhile
 
+Sub DragAndDrop
+  mx = GraphicsWindow.MouseX
+  my = GraphicsWindow.MouseY
+  If (_x1 <= mx) And (_y1 <= my) And (mx <= _x2) And (my <= _y2) Then
+    i = Math.Floor((my - _y1) / _sh) * 8
+    i = i + Math.Floor((mx - _x1) / _sw) + 1
+    If i <= nImg Then
+      shp = Shapes.AddImage(img[i])
+      Shapes.Zoom(shp, 0.3, 0.3)
+      Shapes.SetOpacity(shp, 70)
+      mouseUp = "False"
+      While Not[mouseUp]
+        mx = GraphicsWindow.MouseX
+        my = GraphicsWindow.MouseY
+        Shapes.Move(shp, mx - sw / 2, my - sh / 2)
+        Program.Delay(100)
+      EndWhile
+      mx = GraphicsWindow.MouseX
+      my = GraphicsWindow.MouseY
+      If (x1 <= mx) And (y1 <= my) And (mx <= x2) And (my <= y2) Then
+        j = Math.Floor((my - y1) / qw) * 2
+        j = j + Math.Floor((mx - x1) / qw) + 1
+        x = x1 + Math.Remainder(j - 1, 2) * qw
+        y = y1 + Math.Floor((j - 1) / 2) * qw
+        If j < 3 Then
+          _dy = dy
+        Else
+          _dy = 0
+        EndIf
+        GraphicsWindow.BrushColor = "White"
+        GraphicsWindow.FillRectangle(x, y, qw, qw)
+        GraphicsWindow.DrawResizedImage(img[i], x, y + _dy, qw, qh)
+        updMain = "True"
+      ElseIf (tx1 <= mx) And (ty1 <= my) And (mx <= tx2) And (my <= ty2) Then
+        GraphicsWindow.BrushColor = "White"
+        GraphicsWindow.FillRectangle(tx1, ty1, tw, th)
+        GraphicsWindow.DrawResizedImage(img[i], tx1 + dx, ty1, _tw, th)
+        updTab = "True"
+      EndIf
+      Shapes.Remove(shp)
+    EndIf
+  EndIf
+EndSub
+
 Sub DrawImages
   ' main image: ms x ms [px]
+  x1 = gap
+  y1 = mh + gap
+  x2 = x1 + ms
+  y2 = y1 + ms
   GraphicsWindow.BrushColor = "White"
-  GraphicsWindow.FillRectangle(gap, mh + gap, ms, ms)
+  GraphicsWindow.FillRectangle(x1, y1, ms, ms)
   GraphicsWindow.PenWidth = 1
   GraphicsWindow.PenColor = "DimGray"
   GraphicsWindow.BrushColor = "Transparent"
-  mf = Shapes.AddRectangle(ms, ms)
-  Shapes.Move(mf, gap, mh + gap)
+  If mf = "" Then
+    mf = Shapes.AddRectangle(ms, ms)
+    Shapes.Move(mf, x1, y1)
+  EndIf
   qw = ms / 2
   qh = Math.Round(qw * 320 / 370)
   dy = qw - qh
   If img["main"] <> "" Then
-    x = gap 
-    y = mh + gap
-    GraphicsWindow.DrawResizedImage(img["main"], x, y, ms, ms)
+    GraphicsWindow.DrawResizedImage(img["main"], x1, y1, ms, ms)
   EndIf
   ' tab image: tw x th [px]
   tw = 96       ' tab
   th = 74
+  tx1 = gap * 2 + ms
+  ty1 = mh + gap
+  tx2 = tx1 + tw
+  ty2 = ty1 + th
+  _tw = Math.Round(th / sh * sw)
+  dx = (tw - _tw) / 2
   GraphicsWindow.BrushColor = "White"
-  GraphicsWindow.FillRectangle(gap * 2 + ms, mh + gap, tw, th)
+  GraphicsWindow.FillRectangle(tx1, ty1, tw, th)
   GraphicsWindow.PenWidth = 1
   GraphicsWindow.PenColor = "DimGray"
   GraphicsWindow.BrushColor = "Transparent"
-  tf = Shapes.AddRectangle(tw, th)
-  Shapes.Move(tf, gap * 2 + ms, mh + gap)
+  If tf = "" Then
+    tf = Shapes.AddRectangle(tw, th)
+    Shapes.Move(tf, gap * 2 + ms, mh + gap)
+  EndIf
   If img["tab"] <> "" Then
-    x = gap * 2 + ms
-    y = mh + gap
-    _tw = Math.Round(th / sh * sw)
-    dx = (tw - _tw) / 2
-    GraphicsWindow.DrawResizedImage(img["tab"], x, y, tw, th)
+    GraphicsWindow.DrawResizedImage(img["tab"], tx1, ty1, tw, th)
   EndIf
   ' sticker image: sw x sh --> (resized) _sw x _sh [px]
+  _x1 = gap
+  _y1 = mh + ms + gap * 2
+  _w = _sw * 8
+  _h = _sh * 5
+  _x2 = _x1 + _w
+  _y2 = _y1 + _h
   GraphicsWindow.BrushColor = "LightGray"
-  GraphicsWindow.FillRectangle(gap, mh + ms + gap * 2, _sw * 8, _sh * 5)
+  GraphicsWindow.FillRectangle(_x1, _y1, _w, _h)
   For i = 1 To 40
-    x = gap + Math.Remainder(i - 1, 8) * _sw
-    y = mh + ms + gap * 2 + Math.Floor((i - 1) / 8) * _sh
-    GraphicsWindow.DrawRectangle(x, y, _sw, _sh)
-    If i <= n Then
+    x = _x1 + Math.Remainder(i - 1, 8) * _sw
+    y = _y1 + Math.Floor((i - 1) / 8) * _sh
+    If i <= nImg Then
       If 9 < i Then
         name = i + ".png"
       Else
         name = Text.Append(0, i + ".png")
       EndIf
-      GraphicsWindow.DrawResizedImage(directory + "\" + name, x, y, _sw, _sh)
+      GraphicsWindow.DrawResizedImage(dirUnZip + "\" + name, x, y, _sw, _sh)
     EndIf  
+    GraphicsWindow.DrawRectangle(x, y, _sw, _sh)
   EndFor
 EndSub
 
 Sub GetImages
-  files = File.GetFiles(directory)
+  files = File.GetFiles(dirUnZip)
   img = ""
-  n = 0
+  nImg = 0
+  exMain = "False"
+  exTab = "False"
+  updMain = "False"
+  updTab = "False"
   For i = 1 To Array.GetItemCount(files)
     If Text.EndsWith(files[i], "main.png") Then
       img["main"] = ImageList.LoadImage(files[i])
+      exMain = "True"
     ElseIf Text.EndsWith(files[i], "tab.png") Then
       img["tab"] = ImageList.LoadImage(files[i])
+      exTab = "True"
     Else
-      n = n + 1
-      img[n] = ImageList.LoadImage(files[i])
+      nImg = nImg + 1
+      img[nImg] = ImageList.LoadImage(files[i])
     EndIf
   EndFor
+EndSub
+
+Sub GetTimeStamp
+  time = LDText.Replace(Clock.Time, ":", "")
+  If Text.GetLength(time) < 6 Then
+    time = Text.Append(0, time)
+  EndIf
+  timestamp = LDText.Replace(Clock.Date, "/", "") + "-" + time
 EndSub
 
 Sub Init
@@ -113,14 +192,18 @@ Sub Init
   ms = 240      ' main
   gap = 4
   path = Program.Directory
-  directory = LDFile.TempFolder + "\StickerAid"
+  dirUnZip = LDFile.TempFolder + "\StickerAid"
+  LDGraphicsWindow.ExitOnClose = "False"
+  LDGraphicsWindow.Closing = OnClosing
 EndSub
 
 Sub InitLang
   If lang = "ja" Then
     txt["team"] = "ファシリテーションLINEスタンプ部"
     txt["and"] = "と"
+    txt["ext"] = "Zip ファイル|*.zip" ' |フォルダー|*."
     txt["confirm"] = "%1 を" + LF + "上書き保存しますか？"
+    txt["notSave"] = "キャンセルされたか保存する変更がありません．"
     txt["File"] = "ファイル"
     txt["Open"] = "開く"
     txt["Save"] = "保存"
@@ -130,7 +213,9 @@ Sub InitLang
   Else
     txt["team"] = "Facilitation LINE Sticker Team"
     txt["and"] = "and"
+    txt["ext"] = "Zip File|*.zip" ' |Folder|*."
     txt["confirm"] = "Are you sure to rewrite" + LF + "%1?"
+    txt["notSave"] = "Canceled or nothing updated to save."
     txt["File"] = "File"
     txt["Open"] = "Open"
     txt["Save"] = "Save"
@@ -161,6 +246,11 @@ Sub InitMenu
   LDControls.MenuClicked = OnMenuClicked
 EndSub
 
+Sub InitMouse
+  GraphicsWindow.MouseDown = OnMouseDown
+  GraphicsWindow.MouseUp = OnMouseUp
+EndSub
+
 Sub InitTemp
   temp = LDFile.TempFolder + "\StickerAid"
   If LDFile.Exists(temp) Then
@@ -176,58 +266,94 @@ Sub InitTemp
   EndIf
 EndSub
 
+Sub OnClosing
+  closing = "True"
+EndSub
+
 Sub OnMenuClicked
   menuClicked = "True"
 EndSub
 
+Sub OnMouseDown
+  mouseDown = "True"
+EndSub
+
+Sub OnMouseUp
+  mouseUp = "True"
+EndSub
+
 Sub OpenZip
-  zipFile = LDDialogs.OpenFile("zip", path)
+  zipFile = LDDialogs.OpenFile(txt["ext"], path)
   If zipFile <> "" Then
     InitTemp()
-    time = LDText.Replace(Clock.Time, ":", "")
-    If Text.GetLength(time) < 6 Then
-      time = Text.Append(0, time)
-    EndIf
-    timestamp = LDText.Replace(Clock.Date, "/", "") + "-" + time
-    directory = temp + "\" + timestamp
-    LDZip.UnZip(zipFile, directory)
+    GetTimeStamp()
+    dirUnZip = temp + "\" + timestamp
+    LDZip.UnZip(zipFile, dirUnZip)
   EndIf
 EndSub
 
 Sub SaveZip
-  exMain = LDFile.Exists(directory + "\main.png")
-  exTab = LDFile.Exists(directory + "\tab.png")
-  If exMain Then
-    If exTab Then
+  fileM = dirUnZip + "\main.png"
+  fileT = dirUnZip + "\tab.png"
+  If exMain And updMain Then
+    ovwMain = "True"
+  Else
+    ovwMain = "False"
+  EndIf
+  If exTab And updTab Then
+    ovwTab = "True"
+  Else
+    ovwTab = "False"
+  EndIf
+  If ovwMain Then
+    If ovwTab Then
       targets = "main.png " + txt["and"] + " tab.png"
     Else
       targets = "main.png"
     EndIf
   Else
-    If exTab Then
+    If ovwTab Then
       targets = "tab.png"
     Else
       targets = ""
     EndIf
   EndIf
-  If exMain Or exTab Then
+  If ovwMain Or ovwTab Then
     confirm = LDText.Replace(txt["confirm"], "%1", targets)
     save = LDDialogs.Confirm(confirm, txt["Save"])
-  Else
+  ElseIf updMain Or updTab Then
     save = "Yes"
+  Else
+    save = "No"
   EndIf
   If save = "Yes" Then
+    GetTimeStamp()
+    dirZip = temp + "\" + timestamp
+    File.CreateDirectory(dirZip)
+    fileM = dirZip + "\main.png"
+    fileT = dirZip + "\tab.png"
+    For i = 1 To nImg
+      If 9 < i Then
+        name = i + ".png"
+      Else
+        name = Text.Append(0, i + ".png")
+      EndIf
+      LDImage.SaveAs(img[i], dirZip + "\" + name)
+    EndFor
     Shapes.HideShape(mf)
     Shapes.HideShape(tf)
     imgM = LDGraphicsWindow.Capture("", "False")
-    LDImage.Crop(imgM, gap, mh + gap, ms, ms)
+    LDImage.Crop(imgM, x1, y1, ms, ms)
     imgT = LDGraphicsWindow.Capture("", "False")
-    LDImage.Crop(imgT, gap * 2 + ms, mh + gap, tw, th)
+    LDImage.Crop(imgT, tx1, ty1, tw, th)
     Shapes.ShowShape(mf)
     Shapes.ShowShape(tf)
-    LDImage.SaveAs(imgM, directory + "\main.png")
-    LDImage.SaveAs(imgT, directory + "\tab.png")
-    files = File.GetFiles(directory)
+    LDImage.SaveAs(imgM, fileM)
+    LDImage.SaveAs(imgT, fileT)
+    files = File.GetFiles(dirZip)
     LDZip.Zip(zipFile, files)
+  Else
+    GraphicsWindow.ShowMessage(txt["notSave"], txt["Save"])
   EndIf
 EndSub
+    
