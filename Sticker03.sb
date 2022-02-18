@@ -1,0 +1,68 @@
+' Sticker 03 - AMAZING
+' Copyright © 2022 Nonki Takahashi.  The MIT License.
+' Using LitDev Extension
+
+GraphicsWindow.Title = "Sticker 03 - AMAZING"
+Not = "False=True;True=False;"
+' set window size to maximum LINE sticker size
+gw = 370
+gh = 320
+GraphicsWindow.Width = gw
+GraphicsWindow.Height = gh
+bg = "Yellow" ' color to make transparent
+GraphicsWindow.BackgroundColor = bg
+DrawSticker()
+' save the graphics window image to a PNG file
+dir = Program.Directory + "\LINEStickerSB"
+If Not[LDFile.Exists(dir)] Then
+  File.CreateDirectory(dir)
+EndIf
+img = LDGraphicsWindow.Capture("", "False")
+LDImage.MakeTransparent(img, bg)
+LDImage.SaveAs(img, dir + "\03.png")
+
+Sub DrawSticker
+  ' Draw sticker 03 - AMAZING
+  ' text
+  fs = 70
+  txt = "AMAZING"
+  GraphicsWindow.BrushColor = "Green"
+  GraphicsWindow.FontName = "Arial"
+  GraphicsWindow.FontSize = fs
+  dy = 0
+  Program.Delay(500)
+  tw = LDText.GetWidth(txt)
+  th = LDText.GetHeight(txt)
+  x = Math.Round((gw - tw) / 2)
+  y = dy
+  GraphicsWindow.DrawText(x, y, txt)
+  ' face
+  GraphicsWindow.PenWidth = 0
+  GraphicsWindow.BrushColor = "Orange"
+  fw = 100 
+  fh = 200
+  size = 50
+  dx = size * 1.5 
+  x = dx + Math.Round((gw - (fw + dx)) / 2)
+  y = fs + dy + Math.Round((gh - fh - fs - dy) / 2)
+  GraphicsWindow.FillRectangle(x, y, fw, fh * 2 / 5)
+  GraphicsWindow.FillRectangle(x + fw * 3 / 4, y + fh * 2 / 5, fw / 4, fh * 2 / 5)
+  GraphicsWindow.FillRectangle(x, y + fh * 4 / 5, fw, fh / 5)
+  ' eyes
+  GraphicsWindow.PenWidth = 6
+  GraphicsWindow.PenColor = "Black"
+  GraphicsWindow.BrushColor = "White"
+  x1 = x - size
+  y1 = y + size / 5 + size / 2
+  GraphicsWindow.FillEllipse(x1 - size / 2, y1 - size / 2, size, size)
+  GraphicsWindow.DrawEllipse(x1 - size / 2, y1 - size / 2, size, size)
+  x2 = x1 + size
+  y2 = y1
+  GraphicsWindow.FillEllipse(x2 - size / 2, y2 - size / 2, size, size)
+  GraphicsWindow.DrawEllipse(x2 - size / 2, y2 - size / 2, size, size)
+  ' irises
+  iris = size / 4
+  GraphicsWindow.BrushColor = "Gray"
+  GraphicsWindow.FillEllipse(x1 - iris / 2, y1 - iris / 2, iris, iris)
+  GraphicsWindow.FillEllipse(x2 - iris / 2, y2 - iris / 2, iris, iris)
+EndSub

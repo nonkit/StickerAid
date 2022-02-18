@@ -1,0 +1,62 @@
+' Sticker 08 - COOL!
+' Copyright © 2022 Nonki Takahashi.  The MIT License.
+' Using LitDev Extension
+
+GraphicsWindow.Title = "Sticker 08 - COOL!"
+Not = "False=True;True=False;"
+' set window size to maximum LINE sticker size
+gw = 370
+gh = 320
+GraphicsWindow.Width = gw
+GraphicsWindow.Height = gh
+bg = "White"  ' color to make transparent
+GraphicsWindow.BackgroundColor = bg
+DrawSticker()
+' save the graphics window image to a PNG file
+dir = Program.Directory + "\LINEStickerSB"
+If Not[LDFile.Exists(dir)] Then
+  File.CreateDirectory(dir)
+EndIf
+img = LDGraphicsWindow.Capture("", "False")
+LDImage.MakeTransparent(img, bg)
+LDImage.SaveAs(img, dir + "\08.png")
+
+Sub DrawSticker
+  ' Draw sticker 07 - COOL!
+  ' text
+  fs = 100
+  txt = "COOL!"
+  GraphicsWindow.FontName = "Arial"
+  GraphicsWindow.FontSize = fs
+  dy = 10
+  Program.Delay(500)
+  tw = LDText.GetWidth(txt)
+  th = LDText.GetHeight(txt)
+  tx = Math.Round((gw - tw) / 2)
+  ty = dy
+  GraphicsWindow.BrushColor = "Navy"
+  GraphicsWindow.DrawText(tx, ty, txt)
+  ' glasses
+  sw = 160
+  sh = 120
+  x = (gw - (sw * 2 + 30)) / 2
+  y = fs + dy + (gh - sh - fs - dy) / 2
+  GraphicsWindow.BrushColor = "Black"
+  GraphicsWindow.FillEllipse(x + 10, y, sw, sh)
+  GraphicsWindow.FillRectangle(x + 10, y, sw, sh / 2)
+  GraphicsWindow.FillEllipse(x + sw + 20, y, sw, sh)
+  GraphicsWindow.FillRectangle(x + sw + 20, y, sw, sh / 2)
+  ' highlights
+  GraphicsWindow.PenColor = "#66FFFFFF"
+  GraphicsWindow.PenWidth = 20
+  x1 = x + sw - 50
+  y1 = y - 30
+  x2 = x1 - 10
+  y2 = y1 + sh + 30
+  dx = "1=0;2=30;3=170;4=200;"
+  For i = 1 To 4
+    GraphicsWindow.DrawLine(x1 + dx[i], y1, x2 + dx[i], y2)
+  EndFor
+  GraphicsWindow.BrushColor = "Black"
+  GraphicsWindow.FillRectangle(x, y, sw * 2 + 30, 20)
+EndSub

@@ -1,0 +1,50 @@
+' Sticker 05 - RUN
+' Copyright © 2022 Nonki Takahashi.  The MIT License.
+' Using LitDev Extension
+
+GraphicsWindow.Title = "Sticker 05 - RUN"
+Not = "False=True;True=False;"
+' set window size to maximum LINE sticker size
+gw = 370
+gh = 320
+GraphicsWindow.Width = gw
+GraphicsWindow.Height = gh
+bg = "White" ' color to make transparent
+GraphicsWindow.BackgroundColor = bg
+DrawSticker()
+' save the graphics window image to a PNG file
+dir = Program.Directory + "\LINEStickerSB"
+If Not[LDFile.Exists(dir)] Then
+  File.CreateDirectory(dir)
+EndIf
+img = LDGraphicsWindow.Capture("", "False")
+LDImage.MakeTransparent(img, bg)
+LDImage.SaveAs(img, dir + "\05.png")
+
+Sub DrawSticker
+  ' Draw sticker 05 - RUN
+  ' text
+  fs = 70
+  txt = "RUN"
+  GraphicsWindow.BrushColor = "Black"
+  GraphicsWindow.FontName = "Arial"
+  GraphicsWindow.FontSize = fs
+  dy = 0
+  Program.Delay(500)
+  tw = LDText.GetWidth(txt)
+  th = LDText.GetHeight(txt)
+  x = Math.Round((gw - tw) / 2)
+  y = dy
+  GraphicsWindow.DrawText(x, y, txt)
+  ' triangle
+  GraphicsWindow.BrushColor = "RoyalBlue"
+  tw = 180 
+  th = 180
+  x1 = Math.Round((gw - tw) / 2)
+  y1 = fs + dy + Math.Round((gh - th - fs - dy) / 2)
+  x2 = x1
+  y2 = y1 + th
+  x3 = x1 + tw
+  y3 = y1 + th / 2
+  GraphicsWindow.FillTriangle(x1, y1, x2, y2, x3, y3)
+EndSub

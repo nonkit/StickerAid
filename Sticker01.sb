@@ -1,0 +1,50 @@
+' Sticker 01 - LIKE
+' Copyright © 2022 Nonki Takahashi.  The MIT License.
+' Using LitDev Extension
+
+GraphicsWindow.Title = "Sticker 01 - LIKE"
+Not = "False=True;True=False;"
+' set window size to maximum LINE sticker size
+gw = 370
+gh = 320
+GraphicsWindow.Width = gw
+GraphicsWindow.Height = gh
+bg = "White"  ' color to make transparent
+GraphicsWindow.BackgroundColor = bg
+' Draw sticker 01 - LIKE
+fs = 70
+txt = "LIKE"
+GraphicsWindow.BrushColor = "Red"
+GraphicsWindow.FontName = "Arial"
+GraphicsWindow.FontSize = fs
+dy = 0
+Program.Delay(500)
+tw = LDText.GetWidth(txt)
+th = LDText.GetHeight(txt)
+x = Math.Round((gw - tw) / 2)
+y = dy
+GraphicsWindow.DrawText(x, y, txt)
+GraphicsWindow.PenWidth = 0
+GraphicsWindow.BrushColor = "Magenta"
+size = 140
+shp = Shapes.AddRectangle(size, size)
+xo = Math.Round(gw / 2)
+yo = fs + dy + Math.Round((gh - fs - dy) / 2)
+x = xo - Math.Round(size / 2)
+y = yo - Math.Round(size / 2)
+Shapes.Move(shp, x, y)
+Shapes.Rotate(shp, 45)
+x1 = xo - Math.Round(size * Math.SquareRoot(2) / 4) - size / 2
+y1 = yo - Math.Round(size * Math.SquareRoot(2) / 4) - size / 2
+GraphicsWindow.FillEllipse(x1, y1, size, size)
+x2 = xo + Math.Round(size * Math.SquareRoot(2) / 4) - size / 2
+y2 = y1
+GraphicsWindow.FillEllipse(x2, y2, size, size)
+' save the graphics window image to a PNG file
+dir = Program.Directory + "\LINEStickerSB"
+If Not[LDFile.Exists(dir)] Then
+  File.CreateDirectory(dir)
+EndIf
+img = LDGraphicsWindow.Capture("", "False")
+LDImage.MakeTransparent(img, bg)
+LDImage.SaveAs(img, dir + "\01.png")

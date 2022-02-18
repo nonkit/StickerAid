@@ -1,0 +1,58 @@
+' Sticker 06 - CONGRATS!
+' Copyright © 2022 Nonki Takahashi.  The MIT License.
+' Using LitDev Extension
+
+GraphicsWindow.Title = "Sticker 06 - CONGRATS!"
+Not = "False=True;True=False;"
+' set window size to maximum LINE sticker size
+gw = 370
+gh = 320
+GraphicsWindow.Width = gw
+GraphicsWindow.Height = gh
+bg = "White" ' color to make transparent
+GraphicsWindow.BackgroundColor = bg
+DrawSticker()
+' save the graphics window image to a PNG file
+dir = Program.Directory + "\LINEStickerSB"
+If Not[LDFile.Exists(dir)] Then
+  File.CreateDirectory(dir)
+EndIf
+img = LDGraphicsWindow.Capture("", "False")
+LDImage.MakeTransparent(img, bg)
+LDImage.SaveAs(img, dir + "\06.png")
+
+Sub DrawSticker
+  ' Draw sticker 06 - CONGRATS!
+  ' text
+  fs = 60
+  txt = "CONGRATS!"
+  GraphicsWindow.FontName = "Arial"
+  GraphicsWindow.FontSize = fs
+  dy = 0
+  Program.Delay(500)
+  tw = LDText.GetWidth(txt)
+  th = LDText.GetHeight(txt)
+  tx = Math.Round((gw - tw) / 2)
+  ty = dy
+  ' confeti
+  GraphicsWindow.PenWidth = 0
+  cw = 20 
+  x = Math.Round((gw - cw) / 2)
+  y = fs * 0.7 + Math.Round((gh - ch - fs) / 2)
+  For i = 1 To 150
+    h = Math.GetRandomNumber(360)
+    l = (30 + Math.GetRandomNumber(40)) / 100
+    color = LDColours.HSLtoRGB(h, 1, l)
+    GraphicsWindow.BrushColor = color
+    ch = cw * Math.GetRandomNumber(100) / 100
+    shp = Shapes.AddRectangle(cw, ch)
+    dx = gw * 0.45 * (-1 + 2 * (Math.GetRandomNumber(100) / 100))
+    dy = gh * 0.35 * (-1 + 2 * (Math.GetRandomNumber(100) / 100))
+    Shapes.Move(shp, x + dx, y + dy)
+    a = Math.GetRandomNumber(360)
+    Shapes.Rotate(shp, a)
+  EndFor
+  GraphicsWindow.BrushColor = "Black"
+  shp = Shapes.AddText(txt)
+  Shapes.Move(shp, tx, ty)
+EndSub

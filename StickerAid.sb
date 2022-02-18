@@ -1,6 +1,7 @@
 ' StickerAid
 version = "0.0.9b"
 ' Copyright © 2022 Facilitation LINE Sticker Team.  The MIT License.
+' Program ID HGPP693.000
 ' Using LitDev Extension
 
 Init()

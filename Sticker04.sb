@@ -1,0 +1,72 @@
+' Sticker 04 - BUG?
+' Copyright © 2022 Nonki Takahashi.  The MIT License.
+' Using LitDev Extension
+
+GraphicsWindow.Title = "Sticker 04 - BUG?"
+Not = "False=True;True=False;"
+' set window size to maximum LINE sticker size
+gw = 370
+gh = 320
+GraphicsWindow.Width = gw
+GraphicsWindow.Height = gh
+bg = "White" ' color to make transparent
+GraphicsWindow.BackgroundColor = bg
+DrawSticker()
+' save the graphics window image to a PNG file
+dir = Program.Directory + "\LINEStickerSB"
+If Not[LDFile.Exists(dir)] Then
+  File.CreateDirectory(dir)
+EndIf
+img = LDGraphicsWindow.Capture("", "False")
+LDImage.MakeTransparent(img, bg)
+LDImage.SaveAs(img, dir + "\04.png")
+
+Sub DrawSticker
+  ' Draw sticker 04 - BUG?
+  ' text
+  fs = 70
+  txt = "BUG?"
+  GraphicsWindow.BrushColor = "Black"
+  GraphicsWindow.FontName = "Arial"
+  GraphicsWindow.FontSize = fs
+  dy = 0
+  Program.Delay(500)
+  tw = LDText.GetWidth(txt)
+  th = LDText.GetHeight(txt)
+  x = Math.Round((gw - tw) / 2)
+  y = dy
+  GraphicsWindow.DrawText(x, y, txt)
+  ' limbs
+  GraphicsWindow.PenWidth = 4
+  GraphicsWindow.PenColor = "MidnightBlue"
+  bw = 160 
+  bh = 180
+  xo = gw / 2
+  yo = fs + dy + Math.Round((gh - fs - dy) / 2)
+  For a = 45 To 135 Step 45
+    _a1 = Math.GetRadians(a)
+    _a2 = Math.GetRadians(a + 180)
+    x1 = xo + bw * 0.7 * Math.Sin(_a1)
+    y1 = yo - bh * 0.7 * Math.Cos(_a1)
+    x2 = xo + bw * 0.7 * Math.Sin(_a2)
+    y2 = yo - bh * 0.7 * Math.Cos(_a2)
+    GraphicsWindow.DrawLine(x1, y1, x2, y2)
+  EndFor
+  ' body
+  GraphicsWindow.PenWidth = 0
+  GraphicsWindow.BrushColor = "MidnightBlue"
+  bw = 100 
+  bh = 150
+  x = Math.Round((gw - bw) / 2)
+  y = fs + dy + Math.Round((gh - bh - fs - dy) / 2)
+  GraphicsWindow.FillEllipse(x, y, bw, bh)
+  ' eyes
+  GraphicsWindow.BrushColor = "Red"
+  size = 20
+  x1 = x + bw / 2 - size
+  y1 = y - size / 2
+  GraphicsWindow.FillEllipse(x1, y1, size, size)
+  x2 = x1 + size
+  y2 = y1
+  GraphicsWindow.FillEllipse(x2, y2, size, size)
+EndSub

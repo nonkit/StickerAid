@@ -1,0 +1,74 @@
+' Sticker 07 - Program ID?
+' Copyright © 2022 Nonki Takahashi.  The MIT License.
+' Using LitDev Extension
+
+GraphicsWindow.Title = "Sticker 07 - Program ID?"
+Not = "False=True;True=False;"
+' set window size to maximum LINE sticker size
+gw = 370
+gh = 320
+GraphicsWindow.Width = gw
+GraphicsWindow.Height = gh
+bg = "Cyan" ' color to make transparent
+GraphicsWindow.BackgroundColor = bg
+DrawSticker()
+' save the graphics window image to a PNG file
+dir = Program.Directory + "\LINEStickerSB"
+If Not[LDFile.Exists(dir)] Then
+  File.CreateDirectory(dir)
+EndIf
+img = LDGraphicsWindow.Capture("", "False")
+LDImage.MakeTransparent(img, bg)
+LDImage.SaveAs(img, dir + "\07.png")
+
+Sub DrawSticker
+  ' Draw sticker 07 - Program ID?
+  ' text
+  fs = 60
+  txt = "Program ID?"
+  GraphicsWindow.FontName = "Arial"
+  GraphicsWindow.FontSize = fs
+  dy = 0
+  Program.Delay(500)
+  tw = LDText.GetWidth(txt)
+  th = LDText.GetHeight(txt)
+  tx = Math.Round((gw - tw) / 2)
+  ty = dy
+  GraphicsWindow.BrushColor = "Black"
+  GraphicsWindow.DrawText(tx, ty, txt)
+  ' card
+  cw = 300
+  ch = 200
+  x = (gw - cw) / 2
+  y = fs + dy + (gh - ch - fs - dy) / 2
+  GraphicsWindow.BrushColor = "White"
+  GraphicsWindow.PenWidth = 4
+  GraphicsWindow.PenColor = "DimGray"
+  GraphicsWindow.FillRectangle(x, y, cw, ch)
+  GraphicsWindow.DrawRectangle(x, y, cw, ch)
+  ' name
+  GraphicsWindow.BrushColor = "Black"
+  GraphicsWindow.FontSize = 20
+  GraphicsWindow.DrawText(x + 20, y + 80, "PROGRAM")
+  ' frame
+  fw = 140
+  fh = 160
+  fx = x + cw - fw - 20
+  fy = y + 20
+  GraphicsWindow.BrushColor = "SteelBlue"
+  GraphicsWindow.FillRectangle(fx, fy, fw, fh)
+  ' face
+  GraphicsWindow.BrushColor = "LightGray"
+  GraphicsWindow.FillRectangle(fx + 20, fy + 10, fw - 40, 80)
+  ' body
+  GraphicsWindow.FillRectangle(fx + 20, fy + 110, fw - 40, 50)
+  ' neck
+  GraphicsWindow.BrushColor = "#999999"
+  GraphicsWindow.FillRectangle(fx + 50, fy + 90, 40, 20)
+  ' mouth
+  GraphicsWindow.FillRectangle(fx + 50, fy + 70, 40, 10)
+  ' eyes
+  GraphicsWindow.BrushColor = "DarkKhaki"
+  GraphicsWindow.FillEllipse(fx + 30, fy + 30, 30, 30)
+  GraphicsWindow.FillEllipse(fx + 80, fy + 30, 30, 30)
+EndSub
